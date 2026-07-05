@@ -9,7 +9,7 @@ import otpTemplate from "../utils/templateOTP.js";
 import { sendMail } from "../config/mail.js";
 
 // function SignUp
-export const SignUpService = async (email, password) => {
+export const signUpService = async (email, password) => {
   // check email exists
   const user = await prisma.user.findUnique({
     where: { email: email },
@@ -33,27 +33,30 @@ export const SignUpService = async (email, password) => {
 };
 
 // function SignIn
-export const SignInService = async (email, password) => {
+export const signInService = async (email, password) => {
   const user = await prisma.user.findUnique({
     where: {
       email,
     },
+    include: { employee: true },
   });
 
-  console.log("user: ", user);
-
   if (!user) {
-    throw new HttpError(401, "Email chưa được sử dụng");
+    throw new HttpError(401, "Tài khoản, mật khẩu không chính xác");
   }
 
   const isMatchPassword = await bcrypt.compare(password, user.passwordHash);
-  console.log(isMatchPassword);
   if (!isMatchPassword) {
-    throw new HttpError(401, "Mật khẩu không chính xác");
+    throw new HttpError(401, "Tài khoản, mật khẩu không chính xác");
   }
 
   const accessToken = jwt.sign(
-    { userId: user.id, role: user.role, email: user.email },
+    {
+      userId: user.id,
+      role: user.role,
+      email: user.email,
+      employeeId: user.employee.id,
+    },
     process.env.JWT_SECRET_KEY,
     { expiresIn: process.env.ACCESS_TOKEN_TTL },
   );
@@ -75,7 +78,7 @@ export const SignInService = async (email, password) => {
 };
 
 // function ChangePassword
-export const ChangePasswordService = async (
+export const changePasswordService = async (
   email,
   passwordOld,
   newPassword,
@@ -94,7 +97,7 @@ export const ChangePasswordService = async (
   }
 
   if (newPassword !== confirmPassword) {
-    throw new HttpError(401, "Nhập lại mật khẩu không chính xác");
+    throw new HttpError(401, "Mật khẩu nhập lại không chính xác");
   }
   const newPasswordHash = await bcrypt.hash(newPassword, 10);
   const userUpdate = await prisma.user.update({
@@ -110,7 +113,7 @@ export const ChangePasswordService = async (
 };
 
 // function refreshToken
-export const RefreshTokenService = async (refreshToken) => {
+export const refreshTokenService = async (refreshToken) => {
   const token = await prisma.refreshToken.findUnique({
     where: { refreshToken },
   });
@@ -124,7 +127,7 @@ export const RefreshTokenService = async (refreshToken) => {
         },
       });
     }
-    throw new HttpError(401, "Refresh token invalid or expired");
+    throw new HttpError(401, "Tài khoản chưa được xác thực");
   }
 
   const newAccessToken = jwt.sign({
@@ -137,12 +140,12 @@ export const RefreshTokenService = async (refreshToken) => {
 };
 
 // function SignOut
-export const SignOutService = async (refreshToken) => {
+export const signOutService = async (refreshToken) => {
   await prisma.refreshToken.delete({ where: { token: refreshToken } });
 };
 
 //function forgotpassword
-export const ForgotPasswordService = async (email) => {
+export const forgotPasswordService = async (email) => {
   const emailLower = email.toLowerCase().trim();
   const user = await prisma.user.findUnique({
     where: {
@@ -172,7 +175,7 @@ export const ForgotPasswordService = async (email) => {
 };
 
 // function verify-otp
-export const VerifyOTPService = async (OTP, email) => {
+export const verifyOTPService = async (OTP, email) => {
   const emailLowerCase = email.toLowerCase().trim();
   const otpKey = `${emailLowerCase}:otp`;
 
@@ -199,7 +202,7 @@ export const VerifyOTPService = async (OTP, email) => {
 };
 
 //function resetPassword
-export const ResetPasswordService = async (email, newPassword, resetToken) => {
+export const resetPasswordService = async (email, newPassword, resetToken) => {
   const emailLowerCase = email.toLowerCase().trim();
   const token = await redisClient.get(`resetToken:${emailLowerCase}`);
 
@@ -222,7 +225,7 @@ export const ResetPasswordService = async (email, newPassword, resetToken) => {
 };
 
 //function resendOTP
-export const ResendOTPService = async (email) => {
+export const resendOTPService = async (email) => {
   const emailLowerCase = email.toLowerCase().trim();
   const cooldownKey = `otp_cooldown:${emailLowerCase}`;
 

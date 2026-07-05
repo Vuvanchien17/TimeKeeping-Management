@@ -28,3 +28,14 @@ const startServer = async () => {
 };
 
 startServer();
+
+// GLOBAL ERROR HANDLER
+app.use((error, req, res, next) => {
+  console.log("Lỗi hệ thống: ", error.message);
+  const status = error.statusCode || 500;
+  const message = error.message || "Đã xảy ra lỗi hệ thống nội bộ";
+
+  res
+    .status(status)
+    .json({ status: "error", statusCode: status, message: message });
+});

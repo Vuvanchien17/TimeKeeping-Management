@@ -31,6 +31,7 @@ model User {
   isDeleted Boolean @default(false)
 
   refreshTokens RefreshToken[]
+  employee Employee?
 }
 
 model RefreshToken {
@@ -43,4 +44,83 @@ model RefreshToken {
   userId Int
   user User @relation(fields: [userId], references: [id])
 }
+
+model Department {
+  id Int @id @default(autoincrement())
+  name String
+  description String?
+
+  employees Employee[]
+}
+
+enum Gender {
+  male
+  female
+  other
+}
+
+model Employee {
+  id Int @id @default(autoincrement())
+  code String @unique
+  fullName String
+  joinDate DateTime @default(now())
+  jobTitle String
+  salary Decimal
+
+  phone String?
+  gender Gender?
+  birth DateTime?
+  identifyCard String? @unique
+  address String?
+  isDeleted Boolean @default(false)
+
+  userId Int @unique
+  user User @relation(fields: [userId], references: [id])
+
+  departmentId Int
+  department Department @relation(fields: [departmentId], references: [id])
+
+  educations EmployeeEducation[]
+  exps EmployeeExp[]
+  skills EmployeeSkill[]
+}
+
+model EmployeeEducation {
+  id Int @id @default(autoincrement())
+  schoolName String
+  degree String
+  fieldStudy String
+  startYear Int
+  endYear Int
+  isDeleted Boolean @default(false)
+
+  employeeId Int
+  employee Employee @relation(fields: [employeeId], references: [id])
+}
+
+model EmployeeExp {
+  id Int @id @default(autoincrement())
+  company String
+  jobTitle String
+  startDate DateTime
+  endDate DateTime
+  description String
+  isDeleted Boolean @default(false)
+
+  employeeId Int
+  employee Employee @relation(fields: [employeeId], references: [id])
+}
+
+model EmployeeSkill {
+  id Int @id @default(autoincrement())
+  name String
+  level String
+  isDeleted Boolean @default(false)
+
+  employeeId Int
+  employee Employee @relation(fields: [employeeId], references: [id])
+}
+
+
+
 
