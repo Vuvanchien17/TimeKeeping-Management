@@ -1,23 +1,23 @@
 import redisClient from "../config/redis.js";
 import {
-  ChangePasswordService,
-  RefreshTokenService,
-  SignInService,
-  SignUpService,
-  SignOutService,
-  ForgotPasswordService,
-  VerifyOTPService,
-  ResetPasswordService,
-  ResendOTPService,
+  changePasswordService,
+  refreshTokenService,
+  signInService,
+  signUpService,
+  signOutService,
+  forgotPasswordService,
+  verifyOTPService,
+  resetPasswordService,
+  resendOTPService,
 } from "../services/auth.service.js";
 import { success } from "zod";
 import jwt from "jsonwebtoken";
 
-export const SignUp = async (req, res) => {
+export const signUp = async (req, res) => {
   try {
     const { email, password } = req.body;
     const emailLower = email.toLowerCase(); // ép email về chữ thường
-    const newUser = await SignUpService(emailLower, password);
+    const newUser = await signUpService(emailLower, password);
     return res.status(201).json({ message: "Đăng ký thành công!" });
   } catch (error) {
     if (error.message) {
@@ -28,12 +28,12 @@ export const SignUp = async (req, res) => {
   }
 };
 
-export const SignIn = async (req, res) => {
+export const signIn = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const emailLower = email.toLowerCase(); // ép email về chữ thường
 
-    const { accessToken, refreshToken, user } = await SignInService(
+    const { accessToken, refreshToken, user } = await signInService(
       emailLower,
       password,
     );
@@ -50,22 +50,16 @@ export const SignIn = async (req, res) => {
       data: { accessToken: accessToken, user: user },
     });
   } catch (error) {
-    if (error.message) {
-      return res
-        .status(error.statusCode || 500)
-        .json({ message: error.message });
-    }
-
-    return res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
+    return next(error);
   }
 };
 
-export const ChangePassword = async (req, res) => {
+export const changePassword = async (req, res, next) => {
   try {
     const user = req?.user;
     const { passwordOld, newPassword, confirmPassword } = req.body;
 
-    const { success } = await ChangePasswordService(
+    const { success } = await changePasswordService(
       user.email,
       passwordOld,
       newPassword,
@@ -77,17 +71,11 @@ export const ChangePassword = async (req, res) => {
       });
     }
   } catch (error) {
-    if (error.message) {
-      return res
-        .status(error.statusCode || 500)
-        .json({ message: error.message });
-    }
-
-    return res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
+    return next(error);
   }
 };
 
-export const RefreshToken = async (req, res) => {
+export const refreshToken = async (req, res, next) => {
   try {
     const resfreshToken = req?.cookies.refreshToken;
 
@@ -95,7 +83,7 @@ export const RefreshToken = async (req, res) => {
       return res.status(401).json({ message: "RefeshToken không tồn tại" });
     }
 
-    const newAccessToken = await RefreshTokenService(refreshToken);
+    const newAccessToken = await refreshTokenService(refreshToken);
 
     if (newAccessToken) {
       return res.status(200).json({
@@ -104,17 +92,11 @@ export const RefreshToken = async (req, res) => {
       });
     }
   } catch (error) {
-    if (error.message) {
-      return res
-        .status(error.statusCode || 500)
-        .json({ message: error.message });
-    }
-
-    return res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
+    return next(error);
   }
 };
 
-export const SignOut = async (req, res) => {
+export const signOut = async (req, res, next) => {
   try {
     const refreshToken = req?.cookies.refreshToken;
     const authHeader = req.headers.authorization;
@@ -128,7 +110,7 @@ export const SignOut = async (req, res) => {
     }
 
     if (refreshToken) {
-      await SignOutService(refreshToken);
+      await signOutService(refreshToken);
     }
     res.clearCookie("refreshToken");
 
@@ -136,32 +118,24 @@ export const SignOut = async (req, res) => {
       message: "Đăng xuất thành công.",
     });
   } catch (error) {
-    console.log("err: ", error);
-    return res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
+    return next(error);
   }
 };
 
-export const ForgotPassword = async (req, res) => {
+export const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
 
-    const result = await ForgotPasswordService(email);
+    const result = await forgotPasswordService(email);
     return res.status(200).json({
       message: "Gửi OTP thành công.",
     });
   } catch (error) {
-    console.log(error);
-    if (error.message) {
-      return res
-        .status(error.statusCode || 500)
-        .json({ message: error.message });
-    }
-
-    return res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
+    return next(error);
   }
 };
 
-export const VerifyOTP = async (req, res) => {
+export const verifyOTP = async (req, res, next) => {
   try {
     const { otp, email } = req.body;
 
@@ -169,26 +143,21 @@ export const VerifyOTP = async (req, res) => {
       return res.status(400).json({ message: "Email và OTP là bắt buộc!" });
     }
 
-    const result = await VerifyOTPService(otp, email);
+    const result = await verifyOTPService(otp, email);
     return res.status(200).json({
       message: "Xác thực OTP thành công.",
       resetToken: result,
     });
   } catch (error) {
-    if (error.message) {
-      return res.status(error.statusCode).json({ message: error.message });
-    }
-    return res.status(500).json({
-      message: "Lỗi máy chủ nội bộ.",
-    });
+    return next(error);
   }
 };
 
-export const ResetPassword = async (req, res) => {
+export const resetPassword = async (req, res, next) => {
   try {
     const { email, newPassword, resetToken } = req.body;
 
-    const { success } = await ResetPasswordService(
+    const { success } = await resetPasswordService(
       email,
       newPassword,
       resetToken,
@@ -198,29 +167,19 @@ export const ResetPassword = async (req, res) => {
       return res.status(200).json({ message: "Đặt lại mật khẩu thành công" });
     }
   } catch (error) {
-    if (error.message) {
-      return res.status(error.statusCode).json({ message: error.message });
-    }
-    return res.status(500).json({
-      message: "Lỗi máy chủ nội bộ.",
-    });
+    return next(error);
   }
 };
 
-export const ResendOTP = async (req, res) => {
+export const resendOTP = async (req, res, next) => {
   try {
     const { email } = req.body;
 
-    const { success } = await ResendOTPService(email);
+    const { success } = await resendOTPService(email);
     if (success) {
       return res.status(200).json({ message: "Tạo OTP mới thành công" });
     }
   } catch (error) {
-    if (error.message) {
-      return res.status(error.statusCode).json({ message: error.message });
-    }
-    return res.status(500).json({
-      message: "Lỗi máy chủ nội bộ.",
-    });
+    return next(error);
   }
 };

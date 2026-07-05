@@ -1,14 +1,14 @@
 import express from "express";
 import {
-  ChangePassword,
-  ForgotPassword,
-  RefreshToken,
-  ResendOTP,
-  ResetPassword,
-  SignIn,
-  SignOut,
-  SignUp,
-  VerifyOTP,
+  changePassword,
+  forgotPassword,
+  refreshToken,
+  resendOTP,
+  resetPassword,
+  signIn,
+  signOut,
+  signUp,
+  verifyOTP,
 } from "../controllers/auth.controller.js";
 import { validate } from "../validations/validate.middleware.js";
 import {
@@ -21,26 +21,26 @@ import { protectedRoute } from "../middlewares/auth.middleware.js";
 import { checkBlackList } from "../middlewares/checkBlackList.middleware.js";
 const router = express.Router();
 
-router.post("/signup", validate(User), SignUp);
-router.post("/signin", validate(User), SignIn);
+router.post("/signup", validate(User), signUp);
+router.post("/signin", validate(User), signIn);
 
 router.patch(
   "/change-password",
   validate(ChangePasswordSchema),
   protectedRoute,
-  ChangePassword,
+  changePassword,
 );
 
-router.post("/refresh", RefreshToken);
+router.post("/refresh", refreshToken);
 
-router.post("/signout", protectedRoute, checkBlackList, SignOut);
+router.post("/signout", protectedRoute, checkBlackList, signOut);
 
-router.post("/forgot-password", validate(EmailSchema), ForgotPassword);
+router.post("/forgot-password", validate(EmailSchema), forgotPassword);
 
-router.post("/verify-otp", VerifyOTP);
+router.post("/verify-otp", verifyOTP);
 
-router.patch("/reset-password", validate(ResetPassSchema), ResetPassword);
+router.patch("/reset-password", validate(ResetPassSchema), resetPassword);
 
-router.post("/resend-otp", validate(EmailSchema), ResendOTP);
+router.post("/resend-otp", validate(EmailSchema), resendOTP);
 
 export default router;
