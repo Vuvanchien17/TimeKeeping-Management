@@ -88,7 +88,6 @@ model Employee {
   myLeaves LeaveRequest[] @relation("EmployeeLeaves")
   approvedLeaves  LeaveRequest[] @relation("ApprovedLeaves")
   payrool Payroll[]
-  bonusDeduction  BonusDeduction[]
 }
 
 model EmployeeEducation {
@@ -126,6 +125,7 @@ model EmployeeSkill {
   employeeId Int
   employee Employee @relation(fields: [employeeId], references: [id])
 }
+
 
 enum AttendanceStatus {
   present
@@ -198,19 +198,6 @@ model Payroll {
   @@unique([employeeId, month, year])
 }
 
-model BonusDeduction {
-  id          Int      @id @default(autoincrement())
-  employeeId  Int
-  employee    Employee @relation(fields: [employeeId], references: [id])
 
-  type        String
-  amount      Float
-  reason      String?
-  month       Int
-  year        Int
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
 
 
