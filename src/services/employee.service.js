@@ -66,28 +66,6 @@ export const updateEmployeeService = async (
   if (updatedEmployee) return { success: true };
 };
 
-export const addEmployeeEducationService = async (
-  id,
-  name,
-  degree,
-  fieldStudy,
-  startYear,
-  endYear,
-) => {
-  const education = await prisma.employeeEducation.create({
-    data: {
-      schoolName: name,
-      degree,
-      fieldStudy,
-      startYear: Number(startYear),
-      endYear: Number(endYear),
-      employeeId: Number(id),
-    },
-  });
-
-  if (education) return { success: true };
-};
-
 export const getEmployeeByIdService = async (id, role) => {
   const employee = await prisma.employee.findUnique({
     where: { id: Number(id), isDeleted: false },

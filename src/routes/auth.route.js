@@ -7,7 +7,6 @@ import {
   resetPassword,
   signIn,
   signOut,
-  signUp,
   verifyOTP,
 } from "../controllers/auth.controller.js";
 import { validate } from "../validations/validate.middleware.js";
@@ -21,7 +20,7 @@ import { protectedRoute } from "../middlewares/auth.middleware.js";
 import { checkBlackList } from "../middlewares/checkBlackList.middleware.js";
 const router = express.Router();
 
-router.post("/signup", validate(User), signUp);
+// router.post("/signup", validate(User), signUp);
 router.post("/signin", validate(User), signIn);
 
 router.patch(
