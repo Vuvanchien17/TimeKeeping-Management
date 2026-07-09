@@ -83,12 +83,6 @@ model Employee {
   educations EmployeeEducation[]
   exps EmployeeExp[]
   skills EmployeeSkill[]
-
-  attendances Attendance[]
-  myLeaves LeaveRequest[] @relation("EmployeeLeaves")
-  approvedLeaves  LeaveRequest[] @relation("ApprovedLeaves")
-  payrool Payroll[]
-  bonusDeduction  BonusDeduction[]
 }
 
 model EmployeeEducation {
@@ -126,94 +120,6 @@ model EmployeeSkill {
   employeeId Int
   employee Employee @relation(fields: [employeeId], references: [id])
 }
-
-enum AttendanceStatus {
-  present
-  late
-  early_leave
-}
-
-model Attendance {
-  id Int @id @default(autoincrement())
-  date DateTime @db.Date
-  checkIn DateTime?
-  checkOut DateTime?
-  status AttendanceStatus @default(present)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  lateMinutes Int?
-  earlyMinutes Int?
-
-  employeeId Int
-  employee Employee @relation(fields: [employeeId], references: [id])
-  @@unique([employeeId, date])
-}
-
-
-enum RequestStatus {
-  pending
-  approved
-  rejected
-}
-
-enum LeaveType {
-  paid
-  unpaid
-}
-
-model LeaveRequest {
-  id           Int         @id @default(autoincrement())
-  startDate    DateTime    @db.Date
-  endDate      DateTime    @db.Date
-  totalDays    Float
-  reason       String      @db.Text
-  status       RequestStatus @default(pending)
-  type         LeaveType   @default(paid)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-
-  isDeleted Boolean @default(false)
-
-  approvedById Int?
-  approvedBy   Employee?   @relation("ApprovedLeaves", fields: [approvedById], references: [id])
-
-  employeeId   Int
-  employee     Employee    @relation("EmployeeLeaves", fields: [employeeId], references: [id])
-}
-
-model Payroll {
-  id Int @id @default(autoincrement())
-  month Int
-  year Int
-  baseSalary Float
-  actualWorkDays Float
-  netSalary Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  employeeId Int
-  employee Employee @relation(fields: [employeeId], references: [id])
-
-  @@unique([employeeId, month, year])
-}
-
-model BonusDeduction {
-  id          Int      @id @default(autoincrement())
-  employeeId  Int
-  employee    Employee @relation(fields: [employeeId], references: [id])
-
-  type        String
-  amount      Float
-  reason      String?
-  month       Int
-  year        Int
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-
 
 
 
