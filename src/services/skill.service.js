@@ -21,6 +21,7 @@ export const updateEmployeeSkillService = async (skillId, name, level) => {
     data: {
       name,
       level,
+      description
     },
   });
 

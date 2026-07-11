@@ -13,20 +13,20 @@ import {
 import { success } from "zod";
 import jwt from "jsonwebtoken";
 
-export const signUp = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const emailLower = email.toLowerCase(); // ép email về chữ thường
-    const newUser = await signUpService(emailLower, password);
-    return res.status(201).json({ message: "Đăng ký thành công!" });
-  } catch (error) {
-    if (error.message) {
-      return res.status(error.statusCode).json({ message: error.message });
-    }
+// export const signUp = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     const emailLower = email.toLowerCase(); // ép email về chữ thường
+//     const newUser = await signUpService(emailLower, password);
+//     return res.status(201).json({ message: "Đăng ký thành công!" });
+//   } catch (error) {
+//     if (error.message) {
+//       return res.status(error.statusCode).json({ message: error.message });
+//     }
 
-    return res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
-  }
-};
+//     return res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
+//   }
+// };
 
 export const signIn = async (req, res, next) => {
   try {
