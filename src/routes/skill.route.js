@@ -12,6 +12,8 @@ import {
 import { checkBlackList } from "../middlewares/checkBlackList.middleware.js";
 import { updateEmployeeSkillService } from "../services/skill.service.js";
 
+import { ROLES } from "../utils/const.js";
+
 const router = express.Router({ mergeParams: true });
 router.use(protectedRoute);
 
@@ -19,17 +21,17 @@ router.use(checkBlackList);
 
 router.post(
   "/",
-  authorizedRoles("admin", "manager", "employee"),
+  authorizedRoles(ROLES.admin, ROLES.manager, ROLES.employee),
   addEmployeeSkill,
 );
 router.patch(
   "/:skillId",
-  authorizedRoles("admin", "manager", "employee"),
+  authorizedRoles(ROLES.admin, ROLES.manager, ROLES.employee),
   updateEmployeeSkill,
 );
 router.delete(
   "/:skillId",
-  authorizedRoles("admin", "manager", "employee"),
+  authorizedRoles(ROLES.admin, ROLES.manager, ROLES.employee),
   deleteEmployeeSkill,
 );
 

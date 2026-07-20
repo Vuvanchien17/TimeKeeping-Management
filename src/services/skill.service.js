@@ -10,22 +10,22 @@ export const addEmployeeSkillService = async (id, name, level) => {
     },
   });
 
-  if (skill) return { success: true };
+  return skill;
 };
 
 export const updateEmployeeSkillService = async (skillId, name, level) => {
-  const skill = await prisma.employeeSkill.update({
+  const updateSkill = await prisma.employeeSkill.update({
     where: {
       id: Number(skillId),
     },
     data: {
       name,
       level,
-      description
+      description,
     },
   });
 
-  if (skill) return { success };
+  return updateSkill;
 };
 
 export const deleteEmployeeSkillService = async (skillId) => {

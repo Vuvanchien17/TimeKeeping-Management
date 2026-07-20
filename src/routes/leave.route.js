@@ -10,22 +10,27 @@ import {
   createLeaveRequest,
   getAllLeavesPending,
 } from "../controllers/leave.controller.js";
+import { ROLES } from "../utils/const.js";
 
 const router = express.Router({ mergeParams: true });
 router.use(protectedRoute);
 router.use(checkBlackList);
 
-router.post("/", authorizedRoles("manager", "employee"), createLeaveRequest);
+router.post(
+  "/",
+  authorizedRoles(ROLES.manager, ROLES.employee),
+  createLeaveRequest,
+);
 
 router.get(
   "/pending",
-  authorizedRoles("admin", "manager"),
+  authorizedRoles(ROLES.admin, ROLES.manager),
   getAllLeavesPending,
 );
 
 router.patch(
   "/:id/status",
-  authorizedRoles("admin", "manager"),
+  authorizedRoles(ROLES.admin, ROLES.manager),
   approveLeaveRequest,
 );
 

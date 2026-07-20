@@ -10,20 +10,29 @@ import {
   getAllAttendance,
   getMyAttendanceHistory,
 } from "../controllers/attendance.controller.js";
+import { ROLES } from "../utils/const.js";
 const router = express.Router();
 
 router.use(protectedRoute);
 router.use(checkBlackList);
 
-router.post("/check-in", authorizedRoles("manager", "employee"), checkIn);
+router.post(
+  "/check-in",
+  authorizedRoles(ROLES.manager, ROLES.employee),
+  checkIn,
+);
 
-router.post("/check-out", authorizedRoles("manager", "employee"), checkOut);
+router.post(
+  "/check-out",
+  authorizedRoles(ROLES.manager, ROLES.employee),
+  checkOut,
+);
 
-router.get("/", authorizedRoles("admin", "manager"), getAllAttendance);
+router.get("/", authorizedRoles(ROLES.admin, ROLES.manager), getAllAttendance);
 
 router.get(
   "/me",
-  authorizedRoles("manager", "employee"),
+  authorizedRoles(ROLES.manager, ROLES.employee),
   getMyAttendanceHistory,
 );
 

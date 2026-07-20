@@ -5,6 +5,8 @@ import {
   updateEmployeeSkillService,
 } from "../services/skill.service.js";
 
+import { ROLES } from "../utils/const.js";
+
 export const addEmployeeSkill = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -12,15 +14,17 @@ export const addEmployeeSkill = async (req, res, next) => {
     const role = req.user.role;
 
     if (
-      (role === "employee" || role === "manager") &&
+      (role === ROLES.employee || role === ROLES.manager) &&
       req.user.employeeId !== Number(id)
     ) {
       return res.status(403).json({ message: "Không có quyền truy cập" });
     }
 
-    const { success } = await addEmployeeSkillService(id, name, level);
-    if (success) {
-      return res.status(201).json({ message: "Tạo mới thành công" });
+    const skill = await addEmployeeSkillService(id, name, level);
+    if (skill) {
+      return res
+        .status(201)
+        .json({ message: "Tạo mới thành công", data: { skill: skill } });
     }
   } catch (error) {
     console.log("error: ", error);
@@ -42,16 +46,18 @@ export const updateEmployeeSkill = async (req, res, next) => {
     });
 
     if (
-      (role === "employee" || role === "manager") &&
+      (role === ROLES.employee || role === ROLES.manager) &&
       req.user.employeeId !== skill.employeeId
     ) {
       return res.status(403).json({ message: "Không có quyền truy cập" });
     }
 
-    const { success } = await updateEmployeeSkillService(skillId, name, level);
+    const updateSkill = await updateEmployeeSkillService(skillId, name, level);
 
-    if (success) {
-      return res.status(200).json({ message: "Cập nhật thành công" });
+    if (updateSkill) {
+      return res
+        .status(200)
+        .json({ message: "Cập nhật thành công", data: { skill: updateSkill } });
     }
   } catch (error) {
     console.log("error: ", error);
@@ -72,7 +78,7 @@ export const deleteEmployeeSkill = async (req, res, next) => {
     });
 
     if (
-      (role === "employee" || role === "manager") &&
+      (role === ROLES.employee || role === ROLES.manager) &&
       req.user.employeeId !== skill.employeeId
     ) {
       return res.status(403).json({ message: "Không có quyền truy cập" });

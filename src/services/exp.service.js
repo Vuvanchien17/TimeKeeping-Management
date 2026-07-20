@@ -20,7 +20,7 @@ export const addEmployeeExpService = async (
     },
   });
 
-  if (exp) return { success: true };
+  return exp;
 };
 
 export const updateEmployeeExpService = async (
@@ -42,7 +42,7 @@ export const updateEmployeeExpService = async (
     },
   });
 
-  if (updateExp) return { success };
+  return updateExp;
 };
 
 export const deleteEmployeeExpService = async (expId) => {

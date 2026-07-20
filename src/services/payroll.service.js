@@ -13,7 +13,7 @@ export const calculatePayrollService = async (month, year) => {
   const startOfMonth = new Date(Date.UTC(y, m - 1, 1, 0, 0, 0, 0));
   const endOfMonth = new Date(Date.UTC(y, m, 0, 23, 59, 59, 999));
 
-  const workDays = process.env.STANDARD_WORK_DAYS;
+  const workDays = Number(process.env.STANDARD_WORK_DAYS);
 
   const employees = await prisma.employee.findMany({
     where: { isDeleted: false },
@@ -34,6 +34,9 @@ export const calculatePayrollService = async (month, year) => {
           endDate: { lte: endOfMonth },
         },
       },
+      insurance: {
+        where: { isDeleted: false },
+      },
     },
   });
 
@@ -43,7 +46,7 @@ export const calculatePayrollService = async (month, year) => {
     const actualAttendanceDays = e.attendances.length;
 
     let paidLeaveDays = 0;
-    employees.myLeaves.forEach((leave) => {
+    e.myLeaves.forEach((leave) => {
       const leaveStart =
         leave.startDate < startOfMonth ? startOfMonth : leave.startDate;
       const leaveEnd = leave.endDate > endOfMonth ? endOfMonth : leave.endDate;
@@ -51,13 +54,22 @@ export const calculatePayrollService = async (month, year) => {
       const diffTime = Math.abs(leaveStart - leaveEnd);
 
       const totalLeaveDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      paidLeaveDays += totalLeaveDays;
     });
-
-    paidLeaveDays += totalLeaveDays;
 
     const totalWorkDays = actualAttendanceDays + paidLeaveDays;
 
-    const netSalary = (e.salary / workDays) * totalWorkDays;
+    // khấu trừ insurance
+    let insuranceDeduction = 0;
+    let insuranceSalaryBase = 0;
+
+    if (e.insurance) {
+      insuranceSalaryBase = e.insurance.salaryBase;
+      insuranceDeduction = insuranceSalaryBase * 0.105; // 10,5 %
+    }
+
+    const netSalary =
+      (e.salary / workDays) * totalWorkDays - insuranceDeduction;
 
     payrollResults.push({
       employeeId: e.id,
@@ -70,7 +82,7 @@ export const calculatePayrollService = async (month, year) => {
   }
 
   const querys = payrollResults.map((payroll) => {
-    prisma.payroll.upsert({
+    return prisma.payroll.upsert({
       where: {
         employeeId: payroll.employeeId,
         month: payroll.month,
@@ -168,4 +180,3 @@ export const getMyPayslipService = async (data) => {
 
   return payslip;
 };
-

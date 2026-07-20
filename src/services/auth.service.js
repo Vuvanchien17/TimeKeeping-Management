@@ -9,28 +9,28 @@ import otpTemplate from "../utils/templateOTP.js";
 import { sendMail } from "../config/mail.js";
 
 // function SignUp
-export const signUpService = async (email, password) => {
-  // check email exists
-  const user = await prisma.user.findUnique({
-    where: { email: email },
-  });
+// export const signUpService = async (email, password) => {
+//   // check email exists
+//   const user = await prisma.user.findUnique({
+//     where: { email: email },
+//   });
 
-  if (user) {
-    throw new HttpError(409, "Tài khoản đã được sử dụng");
-  }
+//   if (user) {
+//     throw new HttpError(409, "Tài khoản đã được sử dụng");
+//   }
 
-  // hash password
-  const passwordHash = await bcrypt.hash(password, 10);
+//   // hash password
+//   const passwordHash = await bcrypt.hash(password, 10);
 
-  const newUser = await prisma.user.create({
-    data: {
-      email: email,
-      passwordHash: passwordHash,
-    },
-  });
+//   const newUser = await prisma.user.create({
+//     data: {
+//       email: email,
+//       passwordHash: passwordHash,
+//     },
+//   });
 
-  return newUser;
-};
+//   return newUser;
+// };
 
 // function SignIn
 export const signInService = async (email, password) => {
@@ -84,6 +84,9 @@ export const changePasswordService = async (
   newPassword,
   confirmPassword,
 ) => {
+  if (newPassword !== confirmPassword) {
+    throw new HttpError(401, "Mật khẩu nhập lại không chính xác");
+  }
   const user = await prisma.user.findUnique({
     where: {
       email,
@@ -96,11 +99,8 @@ export const changePasswordService = async (
     throw new HttpError(401, "Mật khẩu không chính xác");
   }
 
-  if (newPassword !== confirmPassword) {
-    throw new HttpError(401, "Mật khẩu nhập lại không chính xác");
-  }
   const newPasswordHash = await bcrypt.hash(newPassword, 10);
-  const userUpdate = await prisma.user.update({
+  const updateUser = await prisma.user.update({
     where: {
       email,
     },
@@ -118,6 +118,9 @@ export const refreshTokenService = async (refreshToken) => {
     where: { refreshToken },
   });
   const user = await prisma.user.findUnique({ where: { id: token.userId } });
+  const employee = await prisma.employee.findUnique({
+    where: { userId: token.userId },
+  });
 
   if (!token || token.expiresAt < new Date()) {
     if (token) {
@@ -134,6 +137,7 @@ export const refreshTokenService = async (refreshToken) => {
     userId: user.id,
     role: user.role,
     email: user.email,
+    employeeId: employee.id,
   });
 
   return newAccessToken;
@@ -154,7 +158,7 @@ export const forgotPasswordService = async (email) => {
   });
 
   if (!user) {
-    throw new HttpError(401, "Email không tồn tại");
+    throw new HttpError(401, "Email không chính xác");
   }
 
   // create OTP

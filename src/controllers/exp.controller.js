@@ -4,6 +4,7 @@ import {
   deleteEmployeeExpService,
   updateEmployeeExpService,
 } from "../services/exp.service.js";
+import { ROLES } from "../utils/const.js";
 
 export const addEmployeeExp = async (req, res, next) => {
   try {
@@ -13,13 +14,13 @@ export const addEmployeeExp = async (req, res, next) => {
     const role = req.user.role;
 
     if (
-      (role === "employee" || role === "manager") &&
+      (role === ROLES.employee || role === ROLES.manager) &&
       req.user.employeeId !== Number(id)
     ) {
       return res.status(403).json({ message: "Không có quyền truy cập" });
     }
 
-    const { success } = await addEmployeeExpService(
+    const exp = await addEmployeeExpService(
       id,
       company,
       jobTitle,
@@ -27,8 +28,10 @@ export const addEmployeeExp = async (req, res, next) => {
       endDate,
       description,
     );
-    if (success) {
-      return res.status(201).json({ message: "Tạo mới thành công" });
+    if (exp) {
+      return res
+        .status(201)
+        .json({ message: "Tạo mới thành công", data: { exp: exp } });
     }
   } catch (error) {
     console.log("error: ", error);
@@ -49,13 +52,13 @@ export const updateEmployeeExp = async (req, res, next) => {
     });
 
     if (
-      (role === "employee" || role === "manager") &&
+      (role === ROLES.employee || role === ROLES.manager) &&
       req.user.employeeId !== exp.employeeId
     ) {
       return res.status(403).json({ message: "Không có quyền truy cập" });
     }
 
-    const { success } = await updateEmployeeExpService(
+    const updateExp = await updateEmployeeExpService(
       expId,
       company,
       jobTitle,
@@ -64,8 +67,13 @@ export const updateEmployeeExp = async (req, res, next) => {
       description,
     );
 
-    if (success) {
-      return res.status(200).json({ message: "Cập nhật thành công" });
+    if (updateExp) {
+      return res.status(200).json({
+        message: "Cập nhật thành công",
+        data: {
+          exp: updateExp,
+        },
+      });
     }
   } catch (error) {
     console.log("error: ", error);
@@ -85,7 +93,7 @@ export const deleteEmployeeExp = async (req, res, next) => {
     });
 
     if (
-      (role === "employee" || role === "manager") &&
+      (role === ROLES.employee || role === ROLES.manager) &&
       req.user.employeeId !== exp.employeeId
     ) {
       return res.status(403).json({ message: "Không có quyền truy cập" });

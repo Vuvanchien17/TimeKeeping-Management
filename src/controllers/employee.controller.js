@@ -5,6 +5,7 @@ import {
   getEmployeeByIdService,
   updateEmployeeService,
 } from "../services/employee.service.js";
+import { ROLES } from "../utils/const.js";
 
 // func create employee
 export const addEmployee = async (req, res, next) => {
@@ -27,7 +28,7 @@ export const updateEmployee = async (req, res, next) => {
     const role = req.user.role;
 
     if (
-      (role === "employee" || role === "manager") &&
+      (role === ROLES.employee || role === ROLES.manager) &&
       req.user.employeeId !== Number(id)
     ) {
       return res.status(403).json({ message: "Không có quyền truy cập" });
@@ -54,7 +55,7 @@ export const getEmployeeById = async (req, res, next) => {
     const { id } = req.params;
     const role = req.user.role;
 
-    if (role === "employee" && req.user.employeeId !== Number(id)) {
+    if (role === ROLES.employee && req.user.employeeId !== Number(id)) {
       return res.status(403).json({ message: "Không có quyền truy cập" });
     }
 
