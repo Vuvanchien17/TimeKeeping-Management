@@ -10,6 +10,7 @@ import {
   getAllPayrolls,
   getMyPayslip,
 } from "../controllers/payroll.controller.js";
+import { ROLES } from "../utils/const.js";
 
 const router = express.Router();
 
@@ -17,10 +18,10 @@ router.use(protectedRoute);
 
 router.use(checkBlackList);
 
-router.post("/caculates", authorizedRoles("admin"), calculatePayroll);
+router.post("/caculates", authorizedRoles(ROLES.admin), calculatePayroll);
 
-router.get("/", authorizedRoles("admin"), getAllPayrolls);
+router.get("/", authorizedRoles(ROLES.admin), getAllPayrolls);
 
-router.get("/:id", authorizedRoles("manager", "employee"), getMyPayslip);
+router.get("/me", authorizedRoles(ROLES.manager, ROLES.employee), getMyPayslip);
 
 export default router;

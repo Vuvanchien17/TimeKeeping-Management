@@ -20,7 +20,7 @@ export const addEmployeeEducationService = async (
     },
   });
 
-  if (education) return { success: true };
+  return education;
 };
 
 export const updateEmployeeEducationService = async (
@@ -44,7 +44,7 @@ export const updateEmployeeEducationService = async (
     },
   });
 
-  if (updateEducation) return { success: true };
+  return updateEducation;
 };
 
 export const deleteEmployeeEducationService = async (educationId) => {

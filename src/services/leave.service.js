@@ -2,6 +2,8 @@ import { HttpError } from "../utils/error.js";
 import { success } from "zod";
 import prisma from "../config/prisma.js";
 
+import { ROLES } from "../utils/const.js";
+
 export const createLeaveRequestService = async (
   employeeId,
   startDate,
@@ -56,7 +58,7 @@ export const approveLeaveRequestService = async (
     where: { id: approvedById },
   });
 
-  if (role === "manager") {
+  if (role === ROLES.manager) {
     if (leaveRequest.employee.user.role !== "employee") {
       throw new HttpError(403, "Không có quyền phê duyệt");
     }
@@ -84,11 +86,11 @@ export const getAllLeavesPendingService = async (role, approvedById) => {
     select: { departmentId: true },
   });
 
-  if (role === "manager") {
+  if (role === ROLES.manager) {
     whereCondition.employee = {
       departmentId: Number(approver.departmentId),
       user: {
-        role: "employee",
+        role: ROLES.employee,
       },
     };
   }

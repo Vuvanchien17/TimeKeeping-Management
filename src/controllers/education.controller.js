@@ -4,6 +4,7 @@ import {
   updateEmployeeEducationService,
 } from "../services/education.service.js";
 import prisma from "../config/prisma.js";
+import { ROLES } from "../utils/const.js";
 
 export const addEmployeeEducation = async (req, res, next) => {
   try {
@@ -11,13 +12,13 @@ export const addEmployeeEducation = async (req, res, next) => {
     const { name, degree, fieldStudy, startYear, endYear } = req.body;
     const role = req.user.role;
     if (
-      (role === "employee" || role === "manager") &&
+      (role === ROLES.employee || role === ROLES.manager) &&
       req.user.employeeId !== Number(id)
     ) {
       return res.status(403).json({ message: "Không có quyền truy cập" });
     }
 
-    const { success } = await addEmployeeEducationService(
+    const education = await addEmployeeEducationService(
       id,
       name,
       degree,
@@ -25,8 +26,11 @@ export const addEmployeeEducation = async (req, res, next) => {
       startYear,
       endYear,
     );
-    if (success) {
-      return res.status(201).json({ message: "Tạo mới thành công" });
+    if (education) {
+      return res.status(201).json({
+        message: "Tạo mới thành công",
+        data: { education: education },
+      });
     }
   } catch (error) {
     console.log("error: ", error);
@@ -47,13 +51,13 @@ export const updateEmployeeEducation = async (req, res, next) => {
     });
 
     if (
-      (role === "employee" || role === "manager") &&
+      (role === ROLES.employee || role === ROLES.manager) &&
       req.user.employeeId !== education.employeeId
     ) {
       return res.status(403).json({ message: "Không có quyền truy cập" });
     }
 
-    const { success } = await updateEmployeeEducationService(
+    const updateEducation = await updateEmployeeEducationService(
       educationId,
       name,
       degree,
@@ -61,8 +65,13 @@ export const updateEmployeeEducation = async (req, res, next) => {
       startYear,
       endYear,
     );
-    if (success) {
-      return res.status(200).json({ message: "Cập nhật thành công" });
+    if (updateEducation) {
+      return res.status(200).json({
+        message: "Cập nhật thành công",
+        data: {
+          education: updateEducation,
+        },
+      });
     }
   } catch (error) {
     return next(error);
@@ -81,7 +90,7 @@ export const deleteEmployeeEducation = async (req, res, next) => {
     });
 
     if (
-      (role === "employee" || role === "manager") &&
+      (role === ROLES.employee || role === ROLES.manager) &&
       req.user.employeeId !== education.employeeId
     ) {
       return res.status(403).json({ message: "Không có quyền truy cập" });
