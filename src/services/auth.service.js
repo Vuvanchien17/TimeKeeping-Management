@@ -60,7 +60,7 @@ export const signInService = async (email, password) => {
     process.env.JWT_SECRET_KEY,
     { expiresIn: process.env.ACCESS_TOKEN_TTL },
   );
-
+  
   const token = crypto.randomBytes(64).toString("hex");
   const refreshToken = await prisma.refreshToken.create({
     data: {
@@ -161,7 +161,6 @@ export const forgotPasswordService = async (email) => {
     throw new HttpError(401, "Email không chính xác");
   }
 
-  // create OTP
   const OTP = Math.floor(100000 + Math.random() * 900000).toString();
 
   await redisClient.setEx(`${emailLower}:otp`, 60, OTP);
@@ -193,13 +192,11 @@ export const verifyOTPService = async (OTP, email) => {
     throw new HttpError(401, "Mã OTP không chính xác.");
   }
 
-  // create resetToken return for user
+
   const resetToken = crypto.randomBytes(32).toString("hex");
 
-  // expire 15p
   await redisClient.setEx(`resetToken:${emailLowerCase}`, 900, resetToken);
 
-  // if match OTP code => delete OTP code
   await redisClient.del(otpKey);
 
   return resetToken;
@@ -233,23 +230,23 @@ export const resendOTPService = async (email) => {
   const emailLowerCase = email.toLowerCase().trim();
   const cooldownKey = `otp_cooldown:${emailLowerCase}`;
 
-  // resend after 60s
+
   const isCooldown = await redisClient.get(cooldownKey);
   if (isCooldown) {
     throw new HttpError(429, "Vui lòng đợi 60 giây trước khi yêu cầu mã mới."); // status code 429 : Too Many Requests
   }
 
-  // delete old otp
+
   await redisClient.del(`${emailLowerCase}:otp`);
 
-  // create new otp
+
   const OTP = Math.floor(100000 + Math.random() * 900000).toString();
 
-  // save new otp into Redis
+
   await redisClient.setEx(`${emailLowerCase}:otp`, 60, OTP);
 
   try {
-    // establish cooldown 60s in Redis
+
     await redisClient.setEx(cooldownKey, 60, "true");
 
     const data = await sendMail(
