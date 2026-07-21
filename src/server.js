@@ -29,7 +29,6 @@ const startServer = async () => {
 
 startServer();
 
-// GLOBAL ERROR HANDLER
 app.use((error, req, res, next) => {
   console.log("Lỗi hệ thống: ", error.message);
   const status = error.statusCode || 500;

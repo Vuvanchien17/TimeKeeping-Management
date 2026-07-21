@@ -3,7 +3,7 @@ import {
   changePasswordService,
   refreshTokenService,
   signInService,
-  signUpService,
+  // signUpService,
   signOutService,
   forgotPasswordService,
   verifyOTPService,
