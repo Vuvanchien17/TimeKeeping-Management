@@ -4,13 +4,13 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "library"
 }
 
 datasource db {
   provider = "mysql"
-  url = env("MYSQL_URL")
+  url      = env("MYSQL_URL")
 }
 
 // define models
@@ -22,32 +22,32 @@ enum Role {
 }
 
 model User {
-  id Int @id @default(autoincrement())
-  email String @unique
-  passwordHash String @db.VarChar(255)
-  role Role @default(employee)
-  createdAt DateTime @default(now())
-  updatedAt DateTime? @updatedAt
-  isDeleted Boolean @default(false)
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String    @db.VarChar(255)
+  role         Role      @default(employee)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime? @updatedAt
+  isDeleted    Boolean   @default(false)
 
   refreshTokens RefreshToken[]
-  employee Employee?
+  employee      Employee?
 }
 
 model RefreshToken {
-  id Int @id @default(autoincrement())
-  token String @unique
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
   isRevoked Boolean  @default(false)
   expiresAt DateTime
   createdAt DateTime @default(now())
 
   userId Int
-  user User @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id])
 }
 
 model Department {
-  id Int @id @default(autoincrement())
-  name String
+  id          Int     @id @default(autoincrement())
+  name        String
   description String?
 
   employees Employee[]
@@ -60,34 +60,34 @@ enum Gender {
 }
 
 model Employee {
-  id Int @id @default(autoincrement())
-  code String @unique
+  id       Int      @id @default(autoincrement())
+  code     String   @unique
   fullName String
   joinDate DateTime @default(now())
   jobTitle String
-  salary Decimal
+  salary   Decimal
 
-  phone String?
-  gender Gender?
-  birth DateTime?
-  identifyCard String? @unique
-  address String?
-  isDeleted Boolean @default(false)
+  phone        String?
+  gender       Gender?
+  birth        DateTime?
+  identifyCard String?   @unique
+  address      String?
+  isDeleted    Boolean   @default(false)
 
-  userId Int @unique
-  user User @relation(fields: [userId], references: [id])
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
 
   departmentId Int
-  department Department @relation(fields: [departmentId], references: [id])
+  department   Department @relation(fields: [departmentId], references: [id])
 
   educations EmployeeEducation[]
-  exps EmployeeExp[]
-  skills EmployeeSkill[]
+  exps       EmployeeExp[]
+  skills     EmployeeSkill[]
 
-  attendances Attendance[]
-  myLeaves LeaveRequest[] @relation("EmployeeLeaves")
-  approvedLeaves  LeaveRequest[] @relation("ApprovedLeaves")
-  payrolls Payroll[]
+  attendances    Attendance[]
+  myLeaves       LeaveRequest[] @relation("EmployeeLeaves")
+  approvedLeaves LeaveRequest[] @relation("ApprovedLeaves")
+  payrolls       Payroll[]
 
   insurance Insurance?
 
@@ -96,41 +96,40 @@ model Employee {
 }
 
 model EmployeeEducation {
-  id Int @id @default(autoincrement())
+  id         Int     @id @default(autoincrement())
   schoolName String
-  degree String
+  degree     String
   fieldStudy String
-  startYear Int
-  endYear Int
-  isDeleted Boolean @default(false)
+  startYear  Int
+  endYear    Int
+  isDeleted  Boolean @default(false)
 
   employeeId Int
-  employee Employee @relation(fields: [employeeId], references: [id])
+  employee   Employee @relation(fields: [employeeId], references: [id])
 }
 
 model EmployeeExp {
-  id Int @id @default(autoincrement())
-  company String
-  jobTitle String
-  startDate DateTime
-  endDate DateTime
+  id          Int      @id @default(autoincrement())
+  company     String
+  jobTitle    String
+  startDate   DateTime
+  endDate     DateTime
   description String
-  isDeleted Boolean @default(false)
+  isDeleted   Boolean  @default(false)
 
   employeeId Int
-  employee Employee @relation(fields: [employeeId], references: [id])
+  employee   Employee @relation(fields: [employeeId], references: [id])
 }
 
 model EmployeeSkill {
-  id Int @id @default(autoincrement())
-  name String
-  level String
+  id        Int     @id @default(autoincrement())
+  name      String
+  level     String
   isDeleted Boolean @default(false)
 
   employeeId Int
-  employee Employee @relation(fields: [employeeId], references: [id])
+  employee   Employee @relation(fields: [employeeId], references: [id])
 }
-
 
 enum AttendanceStatus {
   present
@@ -139,22 +138,22 @@ enum AttendanceStatus {
 }
 
 model Attendance {
-  id Int @id @default(autoincrement())
-  date DateTime @db.Date
-  checkIn DateTime?
-  checkOut DateTime?
-  status AttendanceStatus @default(present)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int              @id @default(autoincrement())
+  date      DateTime         @db.Date
+  checkIn   DateTime?
+  checkOut  DateTime?
+  status    AttendanceStatus @default(present)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
-  lateMinutes Int?
+  lateMinutes  Int?
   earlyMinutes Int?
 
   employeeId Int
-  employee Employee @relation(fields: [employeeId], references: [id])
+  employee   Employee @relation(fields: [employeeId], references: [id])
+
   @@unique([employeeId, date])
 }
-
 
 enum RequestStatus {
   pending
@@ -168,38 +167,37 @@ enum LeaveType {
 }
 
 model LeaveRequest {
-  id           Int         @id @default(autoincrement())
-  startDate    DateTime    @db.Date
-  endDate      DateTime    @db.Date
-  totalDays    Float
-  reason       String      @db.Text
-  status       RequestStatus @default(pending)
-  type         LeaveType   @default(paid)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id        Int           @id @default(autoincrement())
+  startDate DateTime      @db.Date
+  endDate   DateTime      @db.Date
+  totalDays Float
+  reason    String        @db.Text
+  status    RequestStatus @default(pending)
+  type      LeaveType     @default(paid)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   isDeleted Boolean @default(false)
 
   approvedById Int?
-  approvedBy   Employee?   @relation("ApprovedLeaves", fields: [approvedById], references: [id])
+  approvedBy   Employee? @relation("ApprovedLeaves", fields: [approvedById], references: [id])
 
-  employeeId   Int
-  employee     Employee    @relation("EmployeeLeaves", fields: [employeeId], references: [id])
-
+  employeeId Int
+  employee   Employee @relation("EmployeeLeaves", fields: [employeeId], references: [id])
 }
 
 model Payroll {
-  id Int @id @default(autoincrement())
-  month Int
-  year Int
-  baseSalary Float
+  id             Int      @id @default(autoincrement())
+  month          Int
+  year           Int
+  baseSalary     Float
   actualWorkDays Float
-  netSalary Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  netSalary      Float
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   employeeId Int
-  employee Employee @relation(fields: [employeeId], references: [id])
+  employee   Employee @relation(fields: [employeeId], references: [id])
 
   @@unique([employeeId, month, year])
 }
@@ -207,15 +205,21 @@ model Payroll {
 model Insurance {
   id             Int      @id @default(autoincrement())
   insuranceCode  String   @unique // Mã số BHXH
-  healthCardCode String?  // Mã số thẻ BHYT
-  salaryBase     Float    // Mức lương đóng bảo hiểm
+  healthCardCode String? // Mã số thẻ BHYT
+  salaryBase     Float // Mức lương đóng bảo hiểm
   startDate      DateTime
   isDeleted      Boolean  @default(false)
 
-  employeeId     Int      @unique
-  employee       Employee @relation(fields: [employeeId], references: [id])
+  employeeId Int      @unique
+  employee   Employee @relation(fields: [employeeId], references: [id])
 }
 
-
-
-
+model Otps {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  otpCode   String
+  isUsed    Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  isDeleted Boolean  @default(false)
+}

@@ -163,7 +163,29 @@ export const forgotPasswordService = async (email) => {
 
   const OTP = Math.floor(100000 + Math.random() * 900000).toString();
 
-  await redisClient.setEx(`${emailLower}:otp`, 60, OTP);
+  // await redisClient.setEx(`${emailLower}:otp`, 60, OTP);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.otps.updateMany({
+      where: {
+        email: emailLower,
+        isUsed: false,
+        isDeleted: false
+      },
+      data: {
+        isUsed: true,
+        isDeleted: true
+      }
+    });
+
+    await tx.otps.create({
+      data: {
+        email: emailLower,
+        otpCode: OTP,
+        expiresAt: new Date(Date.now() + parseInt(process.env.OTP_TTL))
+      }
+    });
+  });
 
   try {
     return await sendMail(
@@ -172,7 +194,19 @@ export const forgotPasswordService = async (email) => {
       otpTemplate(OTP),
     );
   } catch (error) {
-    await redisClient.del(`${emailLower}:otp`);
+    // await redisClient.del(`${emailLower}:otp`);
+    await tx.otps.updateMany({
+      where: {
+        email: emailLower,
+        otpCode: OTP,
+        isUsed: false,
+        isDeleted: false
+      },
+      data: {
+        isUsed: true,
+        isDeleted: true
+      }
+    });
     throw new HttpError(500, "Gửi mail thất bại");
   }
 };
@@ -180,24 +214,39 @@ export const forgotPasswordService = async (email) => {
 // function verify-otp
 export const verifyOTPService = async (OTP, email) => {
   const emailLowerCase = email.toLowerCase().trim();
-  const otpKey = `${emailLowerCase}:otp`;
 
-  const storedOTP = await redisClient.get(otpKey);
+  // const storedOTP = await redisClient.get(otpKey);
+
+  const storedOTP = await prisma.otps.findFirst({
+    where: {
+      email: emailLowerCase,
+      otpCode: OTP,
+      isUsed: false,
+      isDeleted: false,
+      expiresAt: {gt: new Date()}
+    }
+  })
 
   if (!storedOTP) {
-    throw new HttpError(401, "Mã OTP đã hết hạn hoặc không tồn tại.");
-  }
-
-  if (storedOTP !== OTP) {
     throw new HttpError(401, "Mã OTP không chính xác.");
   }
-
 
   const resetToken = crypto.randomBytes(32).toString("hex");
 
   await redisClient.setEx(`resetToken:${emailLowerCase}`, 900, resetToken);
 
-  await redisClient.del(otpKey);
+  await tx.otps.updateMany({
+    where: {
+      email: emailLower,
+      otpCode: OTP,
+      isUsed: false,
+      isDeleted: false
+    },
+    data: {
+      isUsed: true,
+      isDeleted: true
+    }
+  });
 
   return resetToken;
 };
@@ -208,7 +257,7 @@ export const resetPasswordService = async (email, newPassword, resetToken) => {
   const token = await redisClient.get(`resetToken:${emailLowerCase}`);
 
   if (!token || token !== resetToken) {
-    throw new HttpError(401, "Bạn không có quyền đặt lại mật khẩu");
+    throw new HttpError(401, "Không có quyền đặt lại mật khẩu");
   }
 
   const newPasswordHash = await bcrypt.hash(newPassword, 10);
@@ -230,23 +279,37 @@ export const resendOTPService = async (email) => {
   const emailLowerCase = email.toLowerCase().trim();
   const cooldownKey = `otp_cooldown:${emailLowerCase}`;
 
-
   const isCooldown = await redisClient.get(cooldownKey);
   if (isCooldown) {
     throw new HttpError(429, "Vui lòng đợi 60 giây trước khi yêu cầu mã mới."); // status code 429 : Too Many Requests
   }
 
-
-  await redisClient.del(`${emailLowerCase}:otp`);
-
-
   const OTP = Math.floor(100000 + Math.random() * 900000).toString();
 
+  await prisma.$transaction(async (tx) => {
+    await tx.otps.updateMany({
+      where: {
+        email: emailLowerCase,
+        otpCode: OTP,
+        isUsed: false,
+        isDeleted: false
+      },
+      data: {
+        isUsed: true,
+        isDeleted: true
+      }
+    });
 
-  await redisClient.setEx(`${emailLowerCase}:otp`, 60, OTP);
+    await tx.otps.create({
+      data: {
+        email: emailLowerCase,
+        otpCode: OTP,
+        expiresAt: new Date(Date.now() + parseInt(process.env.OTP_TTL))
+      }
+    });
+  });
 
   try {
-
     await redisClient.setEx(cooldownKey, 60, "true");
 
     const data = await sendMail(
@@ -257,7 +320,18 @@ export const resendOTPService = async (email) => {
 
     if (data) return { success: true };
   } catch (error) {
-    await redisClient.del(`${emailLowerCase}:otp`);
+    await tx.otps.updateMany({
+      where: {
+        email: emailLower,
+        otpCode: OTP,
+        isUsed: false,
+        isDeleted: false
+      },
+      data: {
+        isUsed: true,
+        isDeleted: true
+      }
+    });
     throw new HttpError(500, "Lỗi gửi email. Vui lòng thử lại!");
   }
 };
