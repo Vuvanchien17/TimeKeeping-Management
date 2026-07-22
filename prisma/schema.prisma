@@ -216,7 +216,7 @@ model Insurance {
 
 model Otps {
   id        Int      @id @default(autoincrement())
-  email     String   @unique
+  email     String
   otpCode   String
   isUsed    Boolean  @default(false)
   expiresAt DateTime
